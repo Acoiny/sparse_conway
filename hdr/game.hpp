@@ -1,7 +1,6 @@
 #pragma once
 
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics.hpp>
 #include <cstddef>
 #include <unordered_set>
 
@@ -20,7 +19,7 @@ class Conway
 
     int run();
 
-    void draw();
+    void drawCells();
 
     // private methods
   private:
@@ -40,7 +39,10 @@ class Conway
     std::unordered_set<sf::Vector2i, HASH_FUNCTION> m_cells_next;
 
     bool m_spaceHeld = false;
-    bool m_mouseHeld = false;
+    bool m_mouseLeftHeld = false;
+    bool m_mouseRightHeld = false;
 
     size_t m_generation = 0;
+
+    sf::Font m_font;
 };

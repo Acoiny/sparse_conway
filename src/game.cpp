@@ -1,8 +1,7 @@
 #include "game.hpp"
-#include <SFML/Graphics/RectangleShape.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Event.hpp>
-#include <SFML/Window/Keyboard.hpp>
+#include <SFML/Graphics.hpp>
+#include <cstdlib>
+#include <stdexcept>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -10,11 +9,17 @@
 Conway::Conway(const std::string &text, int width, int height)
     : m_window(sf::VideoMode(width, height), text), m_view(m_window.getView())
 {
+    std::string fontPath = "/usr/share/fonts/truetype/DejaVuSans.ttf";
+
+    if (!m_font.loadFromFile(fontPath))
+    {
+        throw std::runtime_error(
+            std::format("Unable to load font {}", fontPath));
+    }
 }
 
-void Conway::draw()
+void Conway::drawCells()
 {
-    m_window.clear();
 
     sf::RectangleShape rect({1, 1});
 
@@ -23,12 +28,17 @@ void Conway::draw()
         rect.setPosition(c.x, c.y);
         m_window.draw(rect);
     }
-
-    m_window.display();
 }
 
 int Conway::run()
 {
+    sf::Clock timer;
+    timer.restart();
+
+    sf::Text text;
+    text.setFont(m_font);
+    text.setFillColor(sf::Color::White);
+
     while (m_window.isOpen())
     {
         sf::Event event;
@@ -53,11 +63,25 @@ int Conway::run()
                 handleMouseWheel(event);
         }
 
-        if (m_mouseHeld)
+        float dt = timer.getElapsedTime().asSeconds();
+        timer.restart();
+
+        if (m_mouseLeftHeld)
         {
             const auto &pos = sf::Vector2i(
                 m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
             m_cells.insert(pos);
+        }
+        if (m_mouseRightHeld)
+        {
+            const auto &pos = sf::Vector2i(
+                m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
+            for (int x = pos.x - 50; x < pos.x + 50; x++)
+                for (int y = pos.y - 50; y < pos.y + 50; y++)
+                {
+                    if (std::rand() % 2)
+                        m_cells.insert({x, y});
+                }
         }
 
         if (m_spaceHeld)
@@ -65,7 +89,14 @@ int Conway::run()
             simulationStep();
         }
 
-        draw();
+        m_window.clear();
+        auto pos = m_view.getCenter();
+        text.setPosition(pos);
+        text.setString("FPS: " + std::to_string(1 / dt));
+        // m_window.draw(text);
+
+        drawCells();
+        m_window.display();
     }
 
     return 0;
@@ -160,6 +191,10 @@ void Conway::handleKey(sf::Event &event, bool pressed)
     {
     case Key::Space:
         m_spaceHeld = pressed;
+        if (m_spaceHeld)
+            m_window.setFramerateLimit(0);
+        else
+            m_window.setFramerateLimit(30);
         break;
     // if the 'S' key is pressed, do one simulation step
     case Key::S:
@@ -177,7 +212,10 @@ void Conway::handleMouse(sf::Event &event, bool pressed)
     switch (event.mouseButton.button)
     {
     case sf::Mouse::Button::Left:
-        m_mouseHeld = pressed;
+        m_mouseLeftHeld = pressed;
+        break;
+    case sf::Mouse::Button::Right:
+        m_mouseRightHeld = pressed;
         break;
     default:
         break;
