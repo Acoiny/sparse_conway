@@ -50,6 +50,8 @@ int Conway::run()
     sf::Clock timer;
     timer.restart();
 
+    float acc = 0;
+
     while (m_window.isOpen())
     {
         sf::Event event;
@@ -102,7 +104,14 @@ int Conway::run()
             simulationStep();
         }
 
-        m_view.move(m_movement.x * m_zoom, m_movement.y * m_zoom);
+        // accumulate the passed time, and 60 times per second
+        // allow movement
+        acc += dt;
+        if (acc > (1.f / 60))
+        {
+            acc = 0;
+            m_view.move(m_movement.x * m_zoom, m_movement.y * m_zoom);
+        }
 
         m_window.clear();
         drawCells();
