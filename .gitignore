@@ -1,0 +1,6 @@
+.cache/
+.vscode/
+compile_commands.json
+bin/
+debug_sparse_conway
+sparse_conway

@@ -1,0 +1,2 @@
+- [ ] Custom stack-allocator for sprites (not on the stack, but stack datastructure)
+- [ ] Zooming
