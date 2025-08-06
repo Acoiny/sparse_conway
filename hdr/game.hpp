@@ -45,7 +45,11 @@ class Conway
     sf::Vector2i m_movement;
     float m_zoom = 1;
 
-    size_t m_generation = 0;
+    struct
+    {
+        size_t generation = 0;
+        size_t visibleCells = 0;
+    } m_uiData;
 
     sf::Font m_font;
     sf::Text m_text;

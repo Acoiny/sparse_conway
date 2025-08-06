@@ -1,5 +1,7 @@
 #include "game.hpp"
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <cstdint>
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
@@ -9,7 +11,8 @@
 constexpr int IDLE_FRAMERATE = 30;
 
 Conway::Conway(const std::string &text, int width, int height)
-    : m_window(sf::VideoMode(width, height), text), m_view(m_window.getView())
+    : m_window(sf::VideoMode(width, height), text, sf::Style::Close),
+      m_view(m_window.getView())
 {
     m_window.setFramerateLimit(IDLE_FRAMERATE);
 
@@ -21,6 +24,7 @@ Conway::Conway(const std::string &text, int width, int height)
             std::format("Unable to load font {}", fontPath));
     }
 
+    m_text.setScale(0.8, 0.8);
     m_text.setFont(m_font);
     m_text.setFillColor(sf::Color::White);
 }
@@ -31,17 +35,31 @@ void Conway::drawCells()
 
     sf::RectangleShape rect({1, 1});
 
+    m_uiData.visibleCells = 0;
+
     for (auto &c : m_cells)
     {
+        auto pointOnScreen = m_window.mapCoordsToPixel(sf::Vector2f(c));
+        int x = pointOnScreen.x;
+        int y = pointOnScreen.y;
+
+        // skip drawing all cells that are not visible
+        if (x < 0 || y < 0 || uint(x) > m_window.getSize().x ||
+            uint(y) > m_window.getSize().y)
+            continue;
+
         rect.setPosition(c.x, c.y);
         m_window.draw(rect);
+        m_uiData.visibleCells++;
     }
 }
 
 void Conway::drawUi(float dt)
 {
     m_window.setView(m_window.getDefaultView());
-    m_text.setString("FPS: " + std::to_string(int(1 / dt)));
+    m_text.setString("FPS: " + std::to_string(int(1 / dt)) +
+                     "\nCells: " + std::to_string(m_uiData.visibleCells) + '/' +
+                     std::to_string(m_cells.size()));
     m_window.draw(m_text);
 }
 
@@ -191,9 +209,9 @@ void Conway::simulationStep()
     // now just swap the two sets
     std::swap(m_cells, m_cells_next);
     m_cells_next.clear();
-    // m_cells_next.reserve(m_cells.size());
+    m_cells_next.reserve(m_cells.size());
 
-    m_generation++;
+    m_uiData.generation++;
 }
 
 /**

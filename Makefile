@@ -10,9 +10,9 @@ BINARY_DEBUG := debug_$(BINARY)
 DEBUG_FLAGS = -g3 -O0 -ggdb
 
 # flags only for release
-RELEASE_FLAGS := -O3
+RELEASE_FLAGS := -O3 -Wall -Wextra -Werror -Wno-unused-parameter
 
-CFLAGS = -Wall -Wextra -Werror -std=gnu++23 -finline-functions -march=native -Wno-unused-parameter
+CFLAGS = -std=gnu++23 -march=native
 
 HDR = hdr
 
