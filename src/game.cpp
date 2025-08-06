@@ -6,9 +6,13 @@
 #include <unordered_set>
 #include <utility>
 
+constexpr int IDLE_FRAMERATE = 30;
+
 Conway::Conway(const std::string &text, int width, int height)
     : m_window(sf::VideoMode(width, height), text), m_view(m_window.getView())
 {
+    m_window.setFramerateLimit(IDLE_FRAMERATE);
+
     std::string fontPath = "/usr/share/fonts/truetype/DejaVuSans.ttf";
 
     if (!m_font.loadFromFile(fontPath))
@@ -16,10 +20,14 @@ Conway::Conway(const std::string &text, int width, int height)
         throw std::runtime_error(
             std::format("Unable to load font {}", fontPath));
     }
+
+    m_text.setFont(m_font);
+    m_text.setFillColor(sf::Color::White);
 }
 
 void Conway::drawCells()
 {
+    // m_window.setView(m_view);
 
     sf::RectangleShape rect({1, 1});
 
@@ -30,14 +38,17 @@ void Conway::drawCells()
     }
 }
 
+void Conway::drawUi(float dt)
+{
+    m_window.setView(m_window.getDefaultView());
+    m_text.setString("FPS: " + std::to_string(int(1 / dt)));
+    m_window.draw(m_text);
+}
+
 int Conway::run()
 {
     sf::Clock timer;
     timer.restart();
-
-    sf::Text text;
-    text.setFont(m_font);
-    text.setFillColor(sf::Color::White);
 
     while (m_window.isOpen())
     {
@@ -66,6 +77,8 @@ int Conway::run()
         float dt = timer.getElapsedTime().asSeconds();
         timer.restart();
 
+        m_window.setView(m_view);
+
         if (m_mouseLeftHeld)
         {
             const auto &pos = sf::Vector2i(
@@ -89,13 +102,11 @@ int Conway::run()
             simulationStep();
         }
 
-        m_window.clear();
-        auto pos = m_view.getCenter();
-        text.setPosition(pos);
-        text.setString("FPS: " + std::to_string(1 / dt));
-        // m_window.draw(text);
+        m_view.move(m_movement.x * m_zoom, m_movement.y * m_zoom);
 
+        m_window.clear();
         drawCells();
+        drawUi(dt);
         m_window.display();
     }
 
@@ -194,10 +205,22 @@ void Conway::handleKey(sf::Event &event, bool pressed)
         if (m_spaceHeld)
             m_window.setFramerateLimit(0);
         else
-            m_window.setFramerateLimit(30);
+            m_window.setFramerateLimit(IDLE_FRAMERATE);
         break;
-    // if the 'S' key is pressed, do one simulation step
+    case Key::W:
+        m_movement.y = pressed ? -10 : 0;
+        break;
+    case Key::A:
+        m_movement.x = pressed ? -10 : 0;
+        break;
     case Key::S:
+        m_movement.y = pressed ? 10 : 0;
+        break;
+    case Key::D:
+        m_movement.x = pressed ? 10 : 0;
+        break;
+    // if the 'C' key is pressed, do one simulation step
+    case Key::C:
         if (!pressed)
             return;
         simulationStep();
@@ -227,6 +250,6 @@ void Conway::handleMouseWheel(sf::Event &event)
     int delta = -event.mouseWheelScroll.delta;
 
     float zoomValue = 1 + (delta * 0.1);
+    m_zoom *= zoomValue;
     m_view.zoom(zoomValue);
-    m_window.setView(m_view);
 }

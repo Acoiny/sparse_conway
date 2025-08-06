@@ -47,7 +47,7 @@ debug: CFLAGS += $(DEBUG_FLAGS)
 $(BINARY): $(OBJECT_FILES)
 	$(CXX) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
-$(BINARY_DEBUG): $(OBJECT_FILES)
+$(BINARY_DEBUG): $(DOBJECT_FILES)
 	$(CXX) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 ## Release objects

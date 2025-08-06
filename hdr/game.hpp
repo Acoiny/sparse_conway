@@ -19,10 +19,11 @@ class Conway
 
     int run();
 
-    void drawCells();
-
     // private methods
   private:
+    void drawCells();
+    void drawUi(float dt);
+
     void handleKey(sf::Event &event, bool pressed);
     void handleMouse(sf::Event &event, bool pressed);
     void handleMouseWheel(sf::Event &event);
@@ -41,8 +42,11 @@ class Conway
     bool m_spaceHeld = false;
     bool m_mouseLeftHeld = false;
     bool m_mouseRightHeld = false;
+    sf::Vector2i m_movement;
+    float m_zoom = 1;
 
     size_t m_generation = 0;
 
     sf::Font m_font;
+    sf::Text m_text;
 };
