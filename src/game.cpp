@@ -1,7 +1,6 @@
 #include "game.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/Rect.hpp>
-#include <cstdint>
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
@@ -56,10 +55,31 @@ void Conway::drawCells()
 
 void Conway::drawUi(float dt)
 {
+    std::string mouseTool;
+
+    switch (m_uiData.mouseTool)
+    {
+    case MouseTool::ONE_ONE:
+        mouseTool = "1x1";
+        break;
+    case MouseTool::HUND_HUND:
+        mouseTool = "100x100";
+        break;
+    case MouseTool::DEL_ONE_ONE:
+        mouseTool = "del 1x1";
+        break;
+    case MouseTool::DEL_HUND_HUND:
+        mouseTool = "del 100x100";
+        break;
+    default:
+        mouseTool = "invalid!";
+        break;
+    }
+
     m_window.setView(m_window.getDefaultView());
     m_text.setString("FPS: " + std::to_string(int(1 / dt)) +
                      "\nCells: " + std::to_string(m_uiData.visibleCells) + '/' +
-                     std::to_string(m_cells.size()));
+                     std::to_string(m_cells.size()) + "\nTool: " + mouseTool);
     m_window.draw(m_text);
 }
 
@@ -101,20 +121,7 @@ int Conway::run()
 
         if (m_mouseLeftHeld)
         {
-            const auto &pos = sf::Vector2i(
-                m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
-            m_cells.insert(pos);
-        }
-        if (m_mouseRightHeld)
-        {
-            const auto &pos = sf::Vector2i(
-                m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
-            for (int x = pos.x - 50; x < pos.x + 50; x++)
-                for (int y = pos.y - 50; y < pos.y + 50; y++)
-                {
-                    if (std::rand() % 2)
-                        m_cells.insert({x, y});
-                }
+            executeTool(m_uiData.mouseTool);
         }
 
         if (m_spaceHeld)
@@ -147,6 +154,10 @@ void Conway::simulationStep()
     // 2. get their dead neighbours, they could possibly come alive next step
     // 3. count the alive neighbours of the possibles
     std::unordered_set<sf::Vector2i, HASH_FUNCTION> possibles;
+
+    // reserve a multiple, because each cell COULD provide 8 possibles
+    // but probably will have less
+    possibles.reserve(m_cells.size() * 4);
 
     // 1. step
     for (auto &cell : m_cells)
@@ -229,6 +240,8 @@ void Conway::handleKey(sf::Event &event, bool pressed)
     {
     case Key::Space:
         m_spaceHeld = pressed;
+
+        // unlimited framerate when not running
         if (m_spaceHeld)
             m_window.setFramerateLimit(0);
         else
@@ -265,8 +278,15 @@ void Conway::handleMouse(sf::Event &event, bool pressed)
         m_mouseLeftHeld = pressed;
         break;
     case sf::Mouse::Button::Right:
-        m_mouseRightHeld = pressed;
-        break;
+    {
+        if (!pressed)
+            break;
+        int val = (int)m_uiData.mouseTool;
+        val++;
+        val %= (int)MouseTool::MOUSE_TOOL_MAX_VALUE;
+        m_uiData.mouseTool = (MouseTool)val;
+    }
+    break;
     default:
         break;
     }
@@ -279,4 +299,35 @@ void Conway::handleMouseWheel(sf::Event &event)
     float zoomValue = 1 + (delta * 0.1);
     m_zoom *= zoomValue;
     m_view.zoom(zoomValue);
+}
+
+void Conway::executeTool(MouseTool tool)
+{
+    const auto &pos = sf::Vector2i(
+        m_window.mapPixelToCoords(sf::Mouse::getPosition(m_window)));
+    switch (tool)
+    {
+    case MouseTool::ONE_ONE:
+        m_cells.insert(pos);
+        break;
+    case MouseTool::HUND_HUND:
+        for (int x = pos.x - 50; x < pos.x + 50; x++)
+            for (int y = pos.y - 50; y < pos.y + 50; y++)
+            {
+                if (std::rand() % 2)
+                    m_cells.insert({x, y});
+            }
+        break;
+    case MouseTool::DEL_ONE_ONE:
+        m_cells.erase(pos);
+        break;
+    case MouseTool::DEL_HUND_HUND:
+        for (int x = pos.x - 50; x < pos.x + 50; x++)
+            for (int y = pos.y - 50; y < pos.y + 50; y++)
+                m_cells.erase({x, y});
+        break;
+    default:
+
+        break;
+    }
 }

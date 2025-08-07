@@ -12,6 +12,16 @@ struct HASH_FUNCTION
     }
 };
 
+enum class MouseTool
+{
+    ONE_ONE = 0,
+    HUND_HUND,
+    DEL_ONE_ONE,
+    DEL_HUND_HUND,
+
+    MOUSE_TOOL_MAX_VALUE, // max value helper, insert new value BEFORE this
+};
+
 class Conway
 {
   public:
@@ -30,6 +40,8 @@ class Conway
 
     void simulationStep();
 
+    void executeTool(MouseTool tool);
+
     // member variables
   private:
     sf::RenderWindow m_window;
@@ -41,7 +53,6 @@ class Conway
 
     bool m_spaceHeld = false;
     bool m_mouseLeftHeld = false;
-    bool m_mouseRightHeld = false;
     sf::Vector2i m_movement;
     float m_zoom = 1;
 
@@ -49,6 +60,7 @@ class Conway
     {
         size_t generation = 0;
         size_t visibleCells = 0;
+        MouseTool mouseTool = MouseTool::ONE_ONE;
     } m_uiData;
 
     sf::Font m_font;
