@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 #include <cstddef>
 #include <unordered_set>
 
@@ -50,6 +51,7 @@ class Conway
 
     std::unordered_set<sf::Vector2i, HASH_FUNCTION> m_cells;
     std::unordered_set<sf::Vector2i, HASH_FUNCTION> m_cells_next;
+    sf::RectangleShape m_cellShape;
 
     bool m_spaceHeld = false;
     bool m_mouseLeftHeld = false;

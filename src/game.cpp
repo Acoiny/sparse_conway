@@ -11,7 +11,7 @@ constexpr int IDLE_FRAMERATE = 30;
 
 Conway::Conway(const std::string &text, int width, int height)
     : m_window(sf::VideoMode(width, height), text, sf::Style::Close),
-      m_view(m_window.getView())
+      m_view(m_window.getView()), m_cellShape({1, 1})
 {
     m_window.setFramerateLimit(IDLE_FRAMERATE);
 
@@ -32,8 +32,6 @@ void Conway::drawCells()
 {
     // m_window.setView(m_view);
 
-    sf::RectangleShape rect({1, 1});
-
     m_uiData.visibleCells = 0;
 
     for (auto &c : m_cells)
@@ -47,8 +45,8 @@ void Conway::drawCells()
             uint(y) > m_window.getSize().y)
             continue;
 
-        rect.setPosition(c.x, c.y);
-        m_window.draw(rect);
+        m_cellShape.setPosition(c.x, c.y);
+        m_window.draw(m_cellShape);
         m_uiData.visibleCells++;
     }
 }
@@ -314,8 +312,7 @@ void Conway::executeTool(MouseTool tool)
         for (int x = pos.x - 50; x < pos.x + 50; x++)
             for (int y = pos.y - 50; y < pos.y + 50; y++)
             {
-                if (std::rand() % 2)
-                    m_cells.insert({x, y});
+                m_cells.insert({x, y});
             }
         break;
     case MouseTool::DEL_ONE_ONE:
