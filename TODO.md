@@ -1,2 +1,1 @@
-- [ ] Custom stack-allocator for sprites (not on the stack, but stack datastructure)
-- [ ] Zooming
+- [ ] Custom stack-allocator for cells (not on the stack, but stack datastructure)
